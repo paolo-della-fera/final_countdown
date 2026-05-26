@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT'S THE FINAL COUNTDOWN</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #0a0015;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #app {
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    canvas#fireworks {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      display: none;
+    }
+    #btn {
+      font-size: 2.6rem;
+      font-weight: 700;
+      padding: 1.6rem 3.5rem;
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      box-shadow: 0 0 40px rgba(124,58,237,0.6);
+      transition: transform 0.1s, box-shadow 0.1s;
+      z-index: 10;
+      position: relative;
+    }
+    #btn:hover { transform: scale(1.04); box-shadow: 0 0 70px rgba(219,39,119,0.8); }
+    #btn:active { transform: scale(0.97); }
+    #countdown-section {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.4rem;
+      z-index: 10;
+      position: relative;
+      width: 100%;
+    }
+    #big-title {
+      font-size: clamp(1.8rem, 6vw, 3.2rem);
+      font-weight: 900;
+      color: #fff;
+      text-align: center;
+      letter-spacing: 0.04em;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    #sub-title {
+      font-size: clamp(0.95rem, 3vw, 1.25rem);
+      font-weight: 700;
+      color: #fbbf24;
+      text-align: center;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-shadow: 0 0 18px rgba(251,191,36,0.7);
+      animation: subpulse 2.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { text-shadow: 0 0 30px #db2777, 0 0 60px #7c3aed; }
+      50% { text-shadow: 0 0 60px #f472b6, 0 0 100px #a78bfa, 0 0 120px #38bdf8; }
+    }
+    @keyframes subpulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+    #countdown-grid {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .unit {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 0.9rem 1.2rem;
+      min-width: 84px;
+      text-align: center;
+    }
+    .unit-val {
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      font-weight: 800;
+      color: #fff;
+      display: block;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .unit-lbl {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 5px;
+      display: block;
+    }
+    #expired-msg {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      text-align: center;
+    }
+    #expired-line1 {
+      font-size: clamp(2rem, 7vw, 3rem);
+      font-weight: 900;
+      color: #fbbf24;
+      text-shadow: 0 0 30px #fbbf24, 0 0 60px #f59e0b;
+      animation: bigpulse 1s ease-in-out infinite;
+      letter-spacing: 0.04em;
+    }
+    #expired-line2 {
+      font-size: clamp(1.1rem, 4vw, 1.5rem);
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 0 20px #a78bfa;
+      letter-spacing: 0.05em;
+      line-height: 1.5;
+    }
+    #expired-line3 {
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-weight: 800;
+      color: #f472b6;
+      text-shadow: 0 0 20px #db2777;
+      animation: subpulse 1.4s ease-in-out infinite;
+    }
+    @keyframes bigpulse {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.07); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fireworks"></canvas>
+  <div id="app">
+    <button id="btn" onclick="start()">🎆 PREMI QUI 🎆</button>
+    <div id="countdown-section">
+      <div id="big-title">IT'S THE FINAL COUNTDOWN</div>
+      <div id="sub-title">LA PARTENZA (SENZA RITORNO?)</div>
+      <div id="countdown-grid">
+        <div class="unit"><span class="unit-val" id="d">00</span><span class="unit-lbl">giorni</span></div>
+        <div class="unit"><span class="unit-val" id="h">00</span><span class="unit-lbl">ore</span></div>
+        <div class="unit"><span class="unit-val" id="m">00</span><span class="unit-lbl">minuti</span></div>
+        <div class="unit"><span class="unit-val" id="s">00</span><span class="unit-lbl">secondi</span></div>
+      </div>
+      <div id="expired-msg">
+        <div id="expired-line1">🎉 EVVIVA! 🎉</div>
+        <div id="expired-line2">UN MESE DI LIBERTÀ,<br>O FORSE DI PIÙ, CHI LO SÀ?</div>
+        <div id="expired-line3">🤞 🤞 🤞</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TARGET = new Date(2026, 4, 27, 16, 0, 0);
+    const canvas = document.getElementById('fireworks');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let fwInterval;
+
+    function pad(n) { return String(Math.floor(n)).padStart(2, '0'); }
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = TARGET - now;
+      if (diff <= 0) {
+        document.getElementById('countdown-grid').style.display = 'none';
+        document.getElementById('big-title').style.display = 'none';
+        document.getElementById('sub-title').style.display = 'none';
+        document.getElementById('expired-msg').style.display = 'flex';
+        boom();
+        clearInterval(fwInterval);
+        fwInterval = setInterval(() => {
+          for (let i = 0; i < 4; i++) setTimeout(launchRandom, i * 150);
+        }, 900);
+        return;
+      }
+      const days  = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const mins  = Math.floor((diff % 3600000) / 60000);
+      const secs  = Math.floor((diff % 60000) / 1000);
+      document.getElementById('d').textContent = pad(days);
+      document.getElementById('h').textContent = pad(hours);
+      document.getElementById('m').textContent = pad(mins);
+      document.getElementById('s').textContent = pad(secs);
+    }
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x; this.y = y;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 7 + 2;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.alpha = 1;
+        this.decay = Math.random() * 0.02 + 0.012;
+        this.radius = Math.random() * 3 + 1.5;
+        this.color = color;
+        this.gravity = 0.12;
+        this.trail = [];
+      }
+      update() {
+        this.trail.push({ x: this.x, y: this.y });
+        if (this.trail.length > 6) this.trail.shift();
+        this.vy += this.gravity;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= this.decay;
+        this.vx *= 0.98;
+      }
+      draw() {
+        for (let i = 0; i < this.trail.length; i++) {
+          const a = (i / this.trail.length) * this.alpha * 0.4;
+          ctx.globalAlpha = a;
+          ctx.beginPath();
+          ctx.arc(this.trail[i].x, this.trail[i].y, this.radius * 0.5, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+        }
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    const COLORS = ['#ff4da6','#ffdd00','#00e5ff','#b84dff','#ff6b35','#39ff14','#ff0055','#00ffaa','#fff'];
+
+    function explode(x, y) {
+      const count = Math.floor(Math.random() * 60) + 60;
+      const baseColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle(x, y, i % 5 === 0 ? '#fff' : baseColor));
+      }
+    }
+
+    function boom() {
+      for (let i = 0; i < 14; i++) setTimeout(launchRandom, i * 120);
+    }
+
+    function resizeCanvas() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(10,0,21,0.18)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      particles = particles.filter(p => p.alpha > 0.01);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+
+    function launchRandom() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height * 0.6 + 20;
+      explode(x, y);
+    }
+
+    function start() {
+      document.getElementById('btn').style.display = 'none';
+      document.getElementById('countdown-section').style.display = 'flex';
+      canvas.style.display = 'block';
+      resizeCanvas();
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+      animate();
+      for (let i = 0; i < 8; i++) setTimeout(launchRandom, i * 180);
+      fwInterval = setInterval(() => {
+        const n = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < n; i++) setTimeout(launchRandom, i * 200);
+      }, 1800);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+  </script>
+</body>
+</html>
