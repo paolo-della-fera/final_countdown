@@ -6,274 +6,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Il Ritorno</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #060610; font-family: system-ui, -apple-system, sans-serif; }
 
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      background: #060610;
-      font-family: system-ui, -apple-system, sans-serif;
-    }
+    canvas#rain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.35; }
 
-    canvas#rain {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.35;
-    }
+    #bolt-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
 
-    #app {
-      min-height: 100svh;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: clamp(1rem, 5vw, 3rem);
-      position: relative;
-      z-index: 1;
-      gap: clamp(1rem, 3vw, 1.8rem);
-    }
+    #lightning-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: transparent; opacity: 0; pointer-events: none; z-index: 2; transition: opacity 0.15s ease-out; }
 
-    #ultimo-avviso {
-      display: none;
-      font-size: clamp(0.85rem, 2.8vw, 1.15rem);
-      color: rgba(203, 213, 225, 0.55);
-      text-align: center;
-      font-style: italic;
-      line-height: 1.7;
-      max-width: 440px;
-      letter-spacing: 0.02em;
-      animation: avvisoPulse 4s ease-in-out infinite;
-    }
+    #app { min-height: 100svh; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: clamp(1rem, 5vw, 3rem); position: relative; z-index: 3; gap: clamp(1rem, 3vw, 1.8rem); }
 
-    @keyframes avvisoPulse {
+    #ultimo-avviso { display: none; font-size: clamp(0.85rem, 2.8vw, 1.15rem); color: rgba(203,213,225,0.55); text-align: center; font-style: italic; line-height: 1.7; max-width: 440px; letter-spacing: 0.02em; animation: avvisoPulse 4s ease-in-out infinite; }
+    @keyframes avvisoPulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.85; } }
 
-      0%,
-      100% {
-        opacity: 0.5;
-      }
+    #sta-arrivando { display: none; font-size: clamp(0.8rem, 2.5vw, 1rem); color: rgba(148,163,184,0.45); letter-spacing: 0.3em; font-style: italic; text-align: center; animation: staArriva 2.8s ease-in-out infinite; }
+    @keyframes staArriva { 0%,100% { opacity: 0.15; } 50% { opacity: 0.7; } }
 
-      50% {
-        opacity: 0.85;
-      }
-    }
+    #freedom-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; width: 100%; max-width: 320px; }
+    #freedom-label { font-size: clamp(0.6rem, 2vw, 0.75rem); color: rgba(148,163,184,0.3); letter-spacing: 0.12em; text-transform: uppercase; }
+    #freedom-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 99px; overflow: hidden; border: 1px solid rgba(148,163,184,0.1); }
+    #freedom-bar-fill { height: 100%; background: linear-gradient(90deg, #1e293b, #475569); border-radius: 99px; transition: width 1s linear; }
+    #freedom-percent { font-size: clamp(0.6rem, 2vw, 0.72rem); color: rgba(148,163,184,0.25); letter-spacing: 0.08em; }
 
-    #sta-arrivando {
-      display: none;
-      font-size: clamp(0.8rem, 2.5vw, 1rem);
-      color: rgba(148, 163, 184, 0.45);
-      letter-spacing: 0.3em;
-      font-style: italic;
-      text-align: center;
-      animation: staArriva 2.8s ease-in-out infinite;
-    }
+    #sad-emoji { font-size: clamp(2.5rem, 10vw, 5rem); animation: droop 4s ease-in-out infinite; display: block; text-align: center; }
+    @keyframes droop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
-    @keyframes staArriva {
+    #sad-title { font-size: clamp(2rem, 9vw, 4rem); font-weight: 900; color: #94a3b8; text-align: center; letter-spacing: 0.04em; line-height: 1.2; text-shadow: 0 0 40px rgba(148,163,184,0.3); animation: sadpulse 3s ease-in-out infinite; }
+    @keyframes sadpulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-      0%,
-      100% {
-        opacity: 0.15;
-      }
+    #sad-sub { font-size: clamp(0.7rem, 2.5vw, 1rem); color: rgba(148,163,184,0.4); text-align: center; letter-spacing: 0.15em; text-transform: uppercase; font-style: italic; }
 
-      50% {
-        opacity: 0.7;
-      }
-    }
+    #countdown-grid { display: flex; gap: clamp(0.5rem, 2.5vw, 1rem); flex-wrap: wrap; justify-content: center; width: 100%; }
+    .unit { background: rgba(255,255,255,0.03); border: 1px solid rgba(148,163,184,0.12); border-radius: 14px; padding: clamp(0.6rem, 2.5vw, 1rem) clamp(0.6rem, 2.5vw, 1.2rem); min-width: clamp(64px, 18vw, 90px); text-align: center; flex: 1; max-width: 110px; }
+    .unit-val { font-size: clamp(1.6rem, 7vw, 2.8rem); font-weight: 800; color: #94a3b8; display: block; line-height: 1; font-variant-numeric: tabular-nums; }
+    .unit-lbl { font-size: clamp(0.55rem, 2vw, 0.72rem); color: rgba(148,163,184,0.35); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 5px; display: block; }
 
-    #freedom-bar-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.4rem;
-      width: 100%;
-      max-width: 320px;
-    }
+    #sad-quote { font-size: clamp(0.7rem, 2.2vw, 0.9rem); color: rgba(148,163,184,0.25); text-align: center; font-style: italic; letter-spacing: 0.05em; max-width: 340px; line-height: 1.6; }
 
-    #freedom-label {
-      font-size: clamp(0.6rem, 2vw, 0.75rem);
-      color: rgba(148, 163, 184, 0.3);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    #freedom-bar-bg {
-      width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 99px;
-      overflow: hidden;
-      border: 1px solid rgba(148, 163, 184, 0.1);
-    }
-
-    #freedom-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #1e293b, #475569);
-      border-radius: 99px;
-      transition: width 1s linear;
-    }
-
-    #freedom-percent {
-      font-size: clamp(0.6rem, 2vw, 0.72rem);
-      color: rgba(148, 163, 184, 0.25);
-      letter-spacing: 0.08em;
-    }
-
-    #lightning-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: transparent;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 2;
-      transition: opacity 0.15s ease-out;
-    }
-
-    #sad-emoji {
-      font-size: clamp(2.5rem, 10vw, 5rem);
-      animation: droop 4s ease-in-out infinite;
-      display: block;
-      text-align: center;
-    }
-
-    @keyframes droop {
-
-      0%,
-      100% {
-        transform: translateY(0);
-      }
-
-      50% {
-        transform: translateY(8px);
-      }
-    }
-
-    #sad-title {
-      font-size: clamp(2rem, 9vw, 4rem);
-      font-weight: 900;
-      color: #94a3b8;
-      text-align: center;
-      letter-spacing: 0.04em;
-      line-height: 1.2;
-      text-shadow: 0 0 40px rgba(148, 163, 184, 0.3);
-      animation: sadpulse 3s ease-in-out infinite;
-    }
-
-    @keyframes sadpulse {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.6;
-      }
-    }
-
-    #sad-sub {
-      font-size: clamp(0.7rem, 2.5vw, 1rem);
-      color: rgba(148, 163, 184, 0.4);
-      text-align: center;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      font-style: italic;
-    }
-
-    #countdown-grid {
-      display: flex;
-      gap: clamp(0.5rem, 2.5vw, 1rem);
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-    }
-
-    .unit {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(148, 163, 184, 0.12);
-      border-radius: 14px;
-      padding: clamp(0.6rem, 2.5vw, 1rem) clamp(0.6rem, 2.5vw, 1.2rem);
-      min-width: clamp(64px, 18vw, 90px);
-      text-align: center;
-      flex: 1;
-      max-width: 110px;
-    }
-
-    .unit-val {
-      font-size: clamp(1.6rem, 7vw, 2.8rem);
-      font-weight: 800;
-      color: #94a3b8;
-      display: block;
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .unit-lbl {
-      font-size: clamp(0.55rem, 2vw, 0.72rem);
-      color: rgba(148, 163, 184, 0.35);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-top: 5px;
-      display: block;
-    }
-
-    #sad-quote {
-      font-size: clamp(0.7rem, 2.2vw, 0.9rem);
-      color: rgba(148, 163, 184, 0.25);
-      text-align: center;
-      font-style: italic;
-      letter-spacing: 0.05em;
-      max-width: 340px;
-      line-height: 1.6;
-    }
-
-    #expired-msg {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: clamp(0.7rem, 2.5vw, 1rem);
-      text-align: center;
-      position: relative;
-      z-index: 10;
-    }
-
-    #expired-line1 {
-      font-size: clamp(1.8rem, 8vw, 3rem);
-      font-weight: 900;
-      color: #64748b;
-      letter-spacing: 0.04em;
-      animation: sadpulse 2s ease-in-out infinite;
-    }
-
-    #expired-line2 {
-      font-size: clamp(1rem, 4vw, 1.4rem);
-      font-weight: 600;
-      color: #475569;
-      line-height: 1.6;
-    }
-
-    #expired-line3 {
-      font-size: clamp(0.75rem, 2.5vw, 0.95rem);
-      color: rgba(148, 163, 184, 0.3);
-      font-style: italic;
-    }
+    #expired-msg { display: none; flex-direction: column; align-items: center; gap: clamp(0.7rem, 2.5vw, 1rem); text-align: center; position: relative; z-index: 10; }
+    #expired-line1 { font-size: clamp(1.8rem, 8vw, 3rem); font-weight: 900; color: #64748b; letter-spacing: 0.04em; animation: sadpulse 2s ease-in-out infinite; }
+    #expired-line2 { font-size: clamp(1rem, 4vw, 1.4rem); font-weight: 600; color: #475569; line-height: 1.6; }
   </style>
 </head>
 
 <body>
   <canvas id="rain"></canvas>
+  <canvas id="bolt-canvas"></canvas>
   <div id="lightning-overlay"></div>
   <div id="app">
     <span id="sad-emoji">💀</span>
@@ -292,25 +71,30 @@
     <div id="sad-quote">"ogni secondo che passa è un secondo in meno di pace e tranquillità"</div>
     <div id="freedom-bar-wrap">
       <div id="freedom-label">libertà rimanente</div>
-      <div id="freedom-bar-bg">
-        <div id="freedom-bar-fill"></div>
-      </div>
+      <div id="freedom-bar-bg"><div id="freedom-bar-fill"></div></div>
       <div id="freedom-percent"></div>
     </div>
-    <div id="ultimo-avviso">Questi sono gli ultimi santissimi giorni di libertà, senza quel soggetto in mezzo a noi.
-      Uscite, divertitevi, godetevi gli ultimi giorni, prima che una tempesta di rottura di coglioni si scagli contro di
-      noi.</div>
+    <div id="ultimo-avviso">Questi sono gli ultimi santissimi giorni di libertà, senza quel soggetto in mezzo a noi. Uscite, divertitevi, godetevi gli ultimi giorni, prima che una tempesta di rottura di coglioni si scagli contro di noi.</div>
     <div id="sta-arrivando">sta arrivando.</div>
   </div>
+
   <script>
     const TARGET = new Date(2026, 5, 27, 12, 0, 0);
     const rain = document.getElementById("rain");
     const rctx = rain.getContext("2d");
-    let drops = [];
-    let splashes = [];
-    const ANGLE = 0.3; // pioggia inclinata
+    const boltCanvas = document.getElementById("bolt-canvas");
+    const bctx = boltCanvas.getContext("2d");
+    let drops = [], splashes = [];
+    let isExpired = false;
+    let heavyRainStarted = false;
+    const START = new Date(2026, 4, 27, 16, 0, 0);
+    const TOTAL = TARGET - START;
+    const ANGLE = 0.3;
 
-    function resizeRain() { rain.width = window.innerWidth; rain.height = window.innerHeight; }
+    function resizeAll() {
+      rain.width = boltCanvas.width = window.innerWidth;
+      rain.height = boltCanvas.height = window.innerHeight;
+    }
 
     function initDrops(count, speedMin, speedMax, lenMin, lenMax) {
       drops = [];
@@ -327,8 +111,6 @@
 
     function animateRain() {
       rctx.clearRect(0, 0, rain.width, rain.height);
-
-      // draw drops
       drops.forEach(d => {
         const dx = Math.sin(ANGLE) * d.len;
         const dy = Math.cos(ANGLE) * d.len;
@@ -341,14 +123,11 @@
         d.x += Math.sin(ANGLE) * d.speed;
         d.y += Math.cos(ANGLE) * d.speed;
         if (d.y > rain.height) {
-          // splash
-          splashes.push({ x: d.x, y: rain.height, r: 0, maxR: Math.random() * 4 + 2, opacity: 0.5 });
+          splashes.push({ x: d.x, y: rain.height, r: 0, opacity: 0.5 });
           d.y = -d.len;
           d.x = Math.random() * (rain.width + 200) - 100;
         }
       });
-
-      // draw splashes
       splashes = splashes.filter(s => s.opacity > 0.01);
       splashes.forEach(s => {
         rctx.beginPath();
@@ -359,19 +138,13 @@
         s.r += 0.4;
         s.opacity -= 0.06;
       });
-
       requestAnimationFrame(animateRain);
     }
-
-    let heavyRainStarted = false;
-    const START = new Date(2026, 4, 27, 16, 0, 0); // partenza
-    const TOTAL = TARGET - START;
 
     function pad(n) { return String(Math.floor(n)).padStart(2, "0"); }
 
     function updateFreedomBar() {
-      const now = new Date();
-      const diff = TARGET - now;
+      const diff = TARGET - new Date();
       if (diff <= 0) {
         document.getElementById("freedom-bar-fill").style.width = "0%";
         document.getElementById("freedom-percent").textContent = "0% — finita.";
@@ -387,16 +160,21 @@
       updateFreedomBar();
       if (!heavyRainStarted && diff > 0 && diff <= 7 * 86400000) {
         heavyRainStarted = true;
-        startHeavyRain();
+        initDrops(280, 5, 10, 10, 28);
+        rain.style.opacity = "0.6";
         document.getElementById("sta-arrivando").style.display = "block";
         document.getElementById("ultimo-avviso").style.display = "block";
         startWarningLightning();
       }
       if (diff <= 0) {
-        ["countdown-grid", "sad-title", "sad-emoji", "sad-sub", "sad-quote", "freedom-bar-wrap", "sta-arrivando", "ultimo-avviso"].forEach(id => document.getElementById(id).style.display = "none");
+        ["countdown-grid","sad-title","sad-emoji","sad-sub","sad-quote","freedom-bar-wrap","sta-arrivando","ultimo-avviso"].forEach(id => document.getElementById(id).style.display = "none");
         document.getElementById("expired-msg").style.display = "flex";
-        isExpired = true;
-        startStorm();
+        if (!isExpired) {
+          isExpired = true;
+          initDrops(350, 7, 14, 14, 36);
+          rain.style.opacity = "0.75";
+          scheduleLightning();
+        }
         return;
       }
       document.getElementById("d").textContent = pad(Math.floor(diff / 86400000));
@@ -405,56 +183,16 @@
       document.getElementById("s").textContent = pad(Math.floor((diff % 60000) / 1000));
     }
 
-    // Start audio on first user interaction (browser policy)
-    let audioStarted = false;
-    function tryStartAudio() {
-      if (!audioStarted) {
-        const audio = document.getElementById("bg-audio");
-        audio.volume = 0.5;
-        audio.play().catch(() => { });
-        audioStarted = true;
-      }
-    }
-    document.addEventListener("click", tryStartAudio);
-    document.addEventListener("touchstart", tryStartAudio);
-
-    resizeRain(); initDrops(120, 2, 5, 8, 18); animateRain();
-    updateCountdown(); setInterval(updateCountdown, 1000);
-    window.addEventListener("resize", () => { resizeRain(); initDrops(120, 2, 5, 8, 18); });
-
-    // Autoplay audio — i browser bloccano l'autoplay senza interazione,
-    // quindi proviamo subito e se fallisce aspettiamo il primo tocco/click
-    const audio = document.getElementById("bg-audio");
-    audio.volume = 0.6;
-    audio.play().catch(() => {
-      const unlock = () => {
-        audio.play();
-        document.removeEventListener("click", unlock);
-        document.removeEventListener("touchstart", unlock);
-      };
-      document.addEventListener("click", unlock);
-      document.addEventListener("touchstart", unlock);
-    });
-
-    function startHeavyRain() {
-      initDrops(280, 5, 10, 10, 28);
-      rain.style.opacity = "0.6";
-    }
-
+    // Fulmini ogni 2 secondi fissi prima della scadenza (7 giorni)
     function startWarningLightning() {
       setInterval(() => {
         if (!isExpired) flashLightning();
-      }, 10000);
+      }, 2000);
     }
 
-    function startStorm() {
-      initDrops(350, 7, 14, 14, 36);
-      rain.style.opacity = "0.75";
-      scheduleLightning();
-    }
-
+    // Fulmini random 0.8-2.8 secondi alla scadenza
     function scheduleLightning() {
-      const delay = Math.random() * 2000 + 600;
+      const delay = Math.random() * 2000 + 800;
       setTimeout(() => {
         flashLightning();
         if (isExpired) scheduleLightning();
@@ -485,20 +223,25 @@
     }
 
     function flashLightning() {
-      // diffuse blue sky glow instead of white flash
       const glow = document.getElementById("lightning-overlay");
       glow.style.background = "radial-gradient(ellipse at " + (30 + Math.random() * 40) + "% 20%, rgba(100,140,255,0.18) 0%, transparent 70%)";
       glow.style.opacity = "1";
       setTimeout(() => { glow.style.opacity = "0"; }, 180);
 
-      // draw bolt on rain canvas
-      const x = Math.random() * rain.width * 0.8 + rain.width * 0.1;
-      rctx.save();
-      drawBolt(rctx, x, 0, x + (Math.random() - 0.5) * 150, rain.height * 0.6 + Math.random() * rain.height * 0.3, 3);
-      rctx.restore();
-      setTimeout(() => { rctx.clearRect(0, 0, rain.width, rain.height); }, 150);
+      bctx.clearRect(0, 0, boltCanvas.width, boltCanvas.height);
+      const x = Math.random() * boltCanvas.width * 0.8 + boltCanvas.width * 0.1;
+      bctx.save();
+      drawBolt(bctx, x, 0, x + (Math.random() - 0.5) * 150, boltCanvas.height * 0.6 + Math.random() * boltCanvas.height * 0.3, 3);
+      bctx.restore();
+      setTimeout(() => { bctx.clearRect(0, 0, boltCanvas.width, boltCanvas.height); }, 600);
     }
+
+    resizeAll();
+    initDrops(120, 2, 5, 8, 18);
+    animateRain();
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    window.addEventListener("resize", () => { resizeAll(); initDrops(120, 2, 5, 8, 18); });
   </script>
 </body>
-
 </html>
